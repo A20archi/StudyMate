@@ -276,6 +276,45 @@ body {
   filter: brightness(0.9);
 }
 
+@media screen and (max-width: 768px) {
+  .main-container {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 10px;
+  }
+
+  #container,
+  .container2,
+  .notes-section {
+    width: 90% !important;
+    max-width: 100%;
+  }
+
+  textarea {
+    width: 100% !important;
+  }
+
+  button {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  #heading {
+    font-size: 36px;
+  }
+
+  #add-task-btn {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+  }
+}
+
+
 
 
 
