@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  let seconds = 0;
+  
   let intervalID = null;
 
   const todoInput = document.getElementById("todo-input");
@@ -14,53 +14,77 @@ document.addEventListener("DOMContentLoaded", () => {
   let sessionLogs = JSON.parse(localStorage.getItem("studyLogs")) || [];
   let notes = JSON.parse(localStorage.getItem("notes")) || [];
 
-  function updateDisplay() {
-    const hrs = String(Math.floor(seconds / 3600)).padStart(2, "0");
-    const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-    const secs = String(seconds % 60).padStart(2, "0");
-    document.getElementById(
-      "heading"
-    ).innerHTML = `<b>${hrs}:${mins}:${secs}</b>`;
-  }
+  let startTime = null;
+  let totalElapsed = 0;
 
-  document.getElementById("start-btn").addEventListener("click", () => {
-    if (intervalID) return;
-    intervalID = setInterval(() => {
-      seconds++;
-      updateDisplay();
-    }, 1000);
-  });
+function updateDisplay(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const secs = String(totalSeconds % 60).padStart(2, "0");
+  document.getElementById(
+    "heading"
+  ).innerHTML = `<b>${hrs}:${mins}:${secs}</b>`;
+}
 
-  document.getElementById("pause-btn").addEventListener("click", () => {
-    clearInterval(intervalID);
-    intervalID = null;
-  });
+document.getElementById("start-btn").addEventListener("click", () => {
+  if (intervalID) return;
+  startTime = Date.now();
+  intervalID = setInterval(() => {
+    const now = Date.now();
+    const elapsed = now - startTime + totalElapsed;
+    updateDisplay(elapsed);
+  }, 1000);
+});
 
-  document.getElementById("stop-btn").addEventListener("click", () => {
-    if (seconds > 0) {
-      showRandomQuote();
-      const hrs = String(Math.floor(seconds / 3600)).padStart(2, "0");
-      const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-      const secs = String(seconds % 60).padStart(2, "0");
+document.getElementById("pause-btn").addEventListener("click", () => {
+  if (!intervalID) return;
+  clearInterval(intervalID);
+  intervalID = null;
+  totalElapsed += Date.now() - startTime;
+});
 
-      const timeStr = `${hrs}:${mins}:${secs}`;
-      const dateStr = new Date().toLocaleString();
+document.getElementById("stop-btn").addEventListener("click", () => {
+  if (!intervalID && totalElapsed === 0) return;
 
-      const log = {
-        date: dateStr,
-        duration: timeStr,
-      };
+  clearInterval(intervalID);
+  intervalID = null;
 
-      sessionLogs.push(log);
-      saveLogs();
-      renderLogs();
-    }
+  const finalElapsed = Date.now() - startTime + totalElapsed;
+  const totalSeconds = Math.floor(finalElapsed / 1000);
 
-    clearInterval(intervalID);
-    intervalID = null;
-    seconds = 0;
-    updateDisplay();
-  });
+  const hrs = String(Math.floor(finalElapsed / 3600000)).padStart(2, "0");
+  const mins = String(Math.floor((finalElapsed % 3600000) / 60000)).padStart(
+    2,
+    "0"
+  );
+  const secs = String(Math.floor((finalElapsed % 60000) / 1000)).padStart(
+    2,
+    "0"
+  );
+
+  const timeStr = `${hrs}:${mins}:${secs}`;
+  const dateStr = new Date().toLocaleString();
+
+  const log = {
+    date: dateStr,
+    duration: timeStr,
+  };
+
+  sessionLogs.push(log);
+  saveLogs();
+  renderLogs();
+
+  
+  startTime = null;
+  totalElapsed = 0;
+  updateDisplay(0);
+  showRandomQuote();
+
+  
+  
+});
+
 
   addTaskButton.addEventListener("click", () => {
     const taskText = todoInput.value.trim();
